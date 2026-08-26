@@ -12,11 +12,14 @@ source:
   sha256: 8123c265534691613a03fcb941c7b76a9f3f16f01c3b5a3c2d3a39044ae6fa8c
 
 build:
-  number: 0
+  number: 1
   script:
     env:
       CARGO_PROFILE_RELEASE_STRIP: symbols
       CARGO_PROFILE_RELEASE_LTO: fat
+      # Use cmake to build aws-lc-sys, because conda's CFLAGS inject -O2 which
+      # overrides the -O0 required by jitterentropy-base.c, causing a build failure.
+      AWS_LC_SYS_CMAKE_BUILDER: "1"
     content:
       - if: unix
         then:
@@ -32,6 +35,9 @@ requirements:
     - ${{ compiler('rust') }}
     - cargo-bundle-licenses
     - cargo-auditable
+    - cmake
+    - if: unix
+      then: make
 
 tests:
   - script: rops --help
